@@ -1,0 +1,36 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Ana branch'inizin adı (master veya main)
+  workflow_dispatch: # Manuel çalıştırmaya izin verir
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Kodu okumak için gerekli
+      pages: write   # GitHub Pages'e yazmak için gerekli
+      id-token: write # OIDC belirtecini talep etmek için gerekli (Hatanın Çözümü)
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Inject Firebase API Key
+        # sed komutu ile, HTML dosyasındaki yer tutucuyu gizli anahtar ile değiştiriyoruz.
+        run: |
+          sed -i 's|apikeyplace|${{ secrets.API }}|g' "index.html"
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Dağıtılacak dosyaları içeren klasör (Bu örnekte ana dizin)
+          path: . 
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
