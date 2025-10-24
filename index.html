@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınıf Ödev Takip Uygulaması</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        /* Yatay kaydırma çubuğu */
+        .scroll-container {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: thin;  /* Firefox */
+            scrollbar-color: #cbd5e1 transparent; /* Firefox */
+            scroll-behavior: smooth;
+        }
+        .scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* slate-300 */
+            border-radius: 3px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+        /* Yükleme ikonu için animasyon */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b-4 border-indigo-600 pb-2">Sınıf Ödev Takibi</h1>
+        
+        <!-- YETKİLENDİRME BUTONLARI VE KULLANICI BİLGİSİ -->
+        <div id="authContainer" class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
+            
+            <!-- Kullanıcı Bilgisi (Giriş Yapıldığında Görünür) -->
+            <div id="userInfoDisplay" class="text-sm text-gray-600 p-3 bg-white rounded-lg shadow-sm truncate w-full sm:w-auto hidden">
+                <span class="font-semibold text-gray-800" id="userName">Yükleniyor...</span>
+                <span classs="block text-xs text-gray-400 mt-0.5" id="userEmail"></span>
+                <span class="block text-xs text-green-600 font-semibold mt-0.5" id="userClassInfo">Sınıf bilgisi yükleniyor...</span>
+            </div>
+
+            <div class="flex space-x-3 w-full sm:w-auto justify-end">
+                <!-- YÖNETİM PANELİ BUTONU (Sadece Admin için) -->
+                <button id="adminPanelButton" onclick="openAdminModal()" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-200 shadow-lg flex items-center justify-center hidden">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Yönetim Paneli
+                </button>
+
+                <!-- Giriş Yap Butonu (Çıkış Yapıldığında Görünür) -->
+                <button id="googleSignInButton" onclick="signInWithGoogle()" class="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition duration-200 shadow-lg flex items-center justify-center hidden">
+                    <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M48.0001 24.0001C48.0001 22.091 47.8211 20.2183 47.4701 18.4092H24.4828V28.938H37.8183C37.2601 32.148 35.7819 34.8819 33.6664 36.3815V42.784H41.8741C45.7412 39.2183 48.0001 32.1819 48.0001 24.0001Z" fill="#4285F4"></path><path d="M24.4827 48.0001C31.0661 48.0001 36.6368 45.8368 40.4939 42.784L33.6664 36.3815C31.5432 37.8211 28.6095 38.6819 24.4827 38.6819C18.2732 38.6819 13.0913 34.6186 11.2368 28.991H3.00006V35.4819C6.73869 42.9001 15.0005 48.0001 24.4827 48.0001Z" fill="#34A853"></path><path d="M11.2368 28.9909C10.7459 27.509 10.455 25.9363 10.455 24.3181C10.455 22.6999 10.7459 21.1272 11.2368 19.6454V13.1545H3.00006C1.09131 16.6181 0 20.3636 0 24.3181C0 28.2726 1.09131 32.0181 3.00006 35.4817L11.2368 28.9909Z" fill="#FBBC05"></path><path d="M24.4827 9.95449C28.8732 9.95449 32.2277 11.3918 34.8095 13.7818L40.7277 7.8636C36.6368 4.18632 31.0661 1.63632 24.4827 1.63632C15.0005 1.63632 6.73869 6.73632 3.00006 14.1545L11.2368 20.6454C13.0913 15.0181 18.2732 9.95449 24.4827 9.95449Z" fill="#EA4335"></path></svg>
+                    Google ile Giriş Yap
+                </button>
+                
+                <!-- Çıkış Yap Butonu (Giriş Yapıldığında Görünür) -->
+                <button id="signOutButton" onclick="signOutUser()" class="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-200 shadow-md hidden">
+                    Çıkış Yap
+                </button>
+            </div>
+        </div>
+
+        <!-- YENİ ÖDEV GİRİŞ FORMU BÖLÜMÜ (Giriş Yapıldığında ve Sınıfa Atandığında Görünür) -->
+        <div id="inputSection" class="hidden">
+            <div class="bg-white p-6 rounded-xl shadow-2xl mb-8 border-t-8 border-indigo-500">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6">Yeni Ödev Girişi</h2>
+                <form id="homeworkForm" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <!-- Tarih ve Ders Seçimi Grubu -->
+                    <div class="space-y-4">
+                        <!-- Tarih Seçimi -->
+                        <div>
+                            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">📅 Ödev Tarihi</label>
+                            <input type="date" id="date" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                        </div>
+                        
+                        <!-- Ders Seçimi (Paragraf kaldırıldı) -->
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">📚 Ders Seçimi</label>
+                            <select id="subject" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white transition duration-150">
+                                <option value="" disabled selected>Ders Seçiniz</option>
+                                <option value="Türkçe">Türkçe</option>
+                                <option value="Din">Din Kültürü</option>
+                                <option value="Matematik">Matematik</option>
+                                <option value="İnkılap">İnkılap Tarihi</option>
+                                <option value="Fen">Fen Bilimleri</option>
+                                <option value="Sosyal">Sosyal Bilgiler</option>
+                                <option value="İngilizce">İngilizce</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama ve Kaynak Grubu -->
+                    <div class="space-y-4">
+                        <!-- Kaynak/Yayın Adı (Opsiyonel) -->
+                        <div>
+                            <label for="source" class="block text-sm font-medium text-gray-700 mb-1">📖 Kaynak/Kitap (Opsiyonel)</label>
+                            <input type="text" id="source" placeholder="Örn: Fenomen Soru Bankası, Sayfa 20-25" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                        </div>
+                        
+                        <!-- Ödev Açıklaması -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">📝 Ödev Açıklaması</label>
+                            <textarea id="description" rows="3" required placeholder="Verilen ödevin detaylarını buraya yazın..." class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Gönder Butonu -->
+                    <div class="col-span-1 sm:col-span-2 flex justify-center mt-2">
+                        <button type="submit" id="submitButton" class="w-full max-w-sm px-8 py-4 bg-indigo-600 text-white font-bold text-lg rounded-xl hover:bg-indigo-700 transition duration-200 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-[1.01] flex items-center justify-center">
+                            <svg id="loadingSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Ödevi Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- SINIF ATAMA BEKLEME MESAJI (Giriş yapmış ama sınıfı yoksa) -->
+        <div id="noClassAssignedMessage" class="hidden text-center p-8 bg-white rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold text-yellow-700 mb-4">Beklemedesiniz</h2>
+            <p class="text-gray-700">Giriş yaptınız ancak henüz bir sınıfa atanmamışsınız.</p>
+            <p class="text-gray-700 mt-2">Lütfen ödevleri görmek için yöneticinizden (<strong class="text-gray-900">egemacun@gmail.com</strong>) sizi bir sınıfa atamasını isteyin.</p>
+        </div>
+
+        <!-- ÖDEV PANOSU BÖLÜMÜ (Giriş Yapıldığında Görünür) -->
+        <div id="dashboardSection" class="hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Ödev Panosu <span class="text-sm text-gray-500 font-normal">(Günlük ödevleriniz burada listelenir)</span></h2>
+            
+            <div id="dashboardContainer" class="overflow-x-auto pb-4 scroll-container">
+                <div id="resultsContainer" class="flex flex-nowrap space-x-6 min-h-64">
+                    <p id="loadingMessage" class="text-center text-gray-500 w-full flex items-center justify-center">Ödevler yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HATA/BİLGİ MESAJI MODAL -->
+    <div id="messageModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-3">Bilgi</h3>
+            <p id="modalMessage" class="text-gray-700 mb-4"></p>
+            <div id="modalActions" class="flex justify-end space-x-3">
+                <button id="modalDefaultCloseButton" onclick="closeModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Kapat</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ÖDEV DÜZENLEME MODALI -->
+    <div id="editEntryModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="editModalContent">
+            <h3 class="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">Ödev Kaydını Düzenle</h3>
+            <form id="editForm" onsubmit="event.preventDefault(); updateEntry(event)">
+                <input type="hidden" id="edit-id">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <!-- Tarih -->
+                    <div>
+                        <label for="edit-date" class="block text-sm font-medium text-gray-700 mb-1">📅 Ödev Tarihi</label>
+                        <input type="date" id="edit-date" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <!-- Ders -->
+                    <div>
+                        <label for="edit-subject" class="block text-sm font-medium text-gray-700 mb-1">📚 Ders Seçimi</label>
+                        <select id="edit-subject" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                            <option value="Türkçe">Türkçe</option>
+                            <option value="Din">Din Kültürü</option>
+                            <option value="Matematik">Matematik</option>
+                            <option value="İnkılap">İnkılap Tarihi</option>
+                            <option value="Fen">Fen Bilimleri</option>
+                            <option value="Sosyal">Sosyal Bilgiler</option>
+                            <option value="İngilizce">İngilizce</option>
+                            <option value="Diğer">Diğer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Kaynak -->
+                <div class="mb-4">
+                    <label for="edit-source" class="block text-sm font-medium text-gray-700 mb-1">📖 Kaynak/Kitap (Opsiyonel)</label>
+                    <input type="text" id="edit-source" placeholder="Örn: Fenomen Soru Bankası" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                
+                <!-- Ödev Açıklaması -->
+                <div class="mb-4">
+                    <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">📝 Ödev Açıklaması</label>
+                    <textarea id="edit-description" rows="3" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+
+                <!-- Aksiyon Butonları -->
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">İptal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- YÖNETİM PANELİ MODALI (Sadece Admin için) -->
+    <div id="adminModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 hidden items-center justify-center p-4 z-[60]">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-2xl w-full transform transition-all duration-300 scale-95 opacity-0" id="adminModalContent">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-2xl font-bold text-blue-700">Yönetim Paneli - Sınıf Atama</h3>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            
+            <!-- Yeni Kullanıcı Ekleme Formu -->
+            <form id="adminForm" onsubmit="event.preventDefault(); addOrUpdateAssignment()" class="mb-6 p-4 bg-gray-50 rounded-lg border">
+                <h4 class="text-lg font-semibold mb-3">Yeni Kullanıcı Ekle / Güncelle</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label for="admin-email" class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Email</label>
+                        <input type="email" id="admin-email" required placeholder="ornek@gmail.com" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="admin-class" class="block text-sm font-medium text-gray-700 mb-1">Sınıf</label>
+                        <input type="text" id="admin-class" required placeholder="Örn: 8A" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                <button type="submit" class="w-full sm:w-auto mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Kaydet</button>
+            </form>
+            
+            <!-- Mevcut Atamalar Listesi -->
+            <div>
+                <h4 class="text-lg font-semibold mb-3">Mevcut Sınıf Atamaları</h4>
+                <div id="adminAssignmentListLoading" class="text-gray-500">Liste yükleniyor...</div>
+                <div id="adminAssignmentList" class="max-h-64 overflow-y-auto space-y-2">
+                    <!-- Atamalar buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK'ları -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, doc, deleteDoc, getDocs, where, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global değişkenler
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-homework-tracker';
+        
+        // Önceki uygulamadan yedek yapılandırma (Canvas ortamı dışı test için)
+        const hardcodedConfigString = {
+		    apiKey: "apikeyplace",
+		    authDomain: "odev-takip-tr.firebaseapp.com",
+		    projectId: "odev-takip-tr",
+		    storageBucket: "odev-takip-tr.firebasestorage.app",
+		    messagingSenderId: "125038307809",
+		    appId: "1:125038307809:web:ff8cd21758dc7b7da48aa0"
+		  };
+        
+        // __firebase_config'in string mi yoksa object mi olduğunu kontrol et
+        const configSource = (typeof __firebase_config !== 'undefined') 
+            ? __firebase_config 
+            : hardcodedConfigString;
+
+        // Sadece string ise parse et, object ise doğrudan kullan
+        const firebaseConfig = (typeof configSource === 'string')
+            ? JSON.parse(configSource)
+            : configSource;
+
+        let db;
+        let auth;
+        let userId = null;
+        let userEmail = null;
+        let userClass = null; // Kullanıcının atandığı sınıf (Örn: "8A")
+        let isAdmin = false;
+        let homeworkDataListener = null; // Sınıf değiştiğinde eski listener'ı kapatmak için
+        
+        let allEntriesMap = new Map(); // Tüm girişleri ID'ye göre saklamak için harita
+        
+        // Yönetici Emaili
+        const ADMIN_EMAIL = "egemacun@gmail.com";
+
+        // ===== BAŞLANGIÇ: YOL (PATH) DÜZELTMESİ =====
+        // Firestore koleksiyon yolları TEK sayıda segmente sahip olmalıdır.
+        // HATA: .../public/class_assignments (4 segment)
+        // DOĞRU: .../public/data/class_assignments (5 segment)
+        const ASSIGNMENT_COLLECTION = `artifacts/${appId}/public/data/class_assignments`;
+        
+        // HATA: .../public/homework (4 segment)
+        // DOĞRU: .../public/data/homework (5 segment)
+        // Bu, "homework" koleksiyonunu tutar (içinde 8A, 8B gibi dokümanlar olacak)
+        const HOMEWORK_COLLECTION_BASE = `artifacts/${appId}/public/data/homework`;
+        // ===== SON: YOL (PATH) DÜZELTMESİ =====
+
+
+        // UI Elementleri
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const form = document.getElementById('homeworkForm');
+        const submitButton = document.getElementById('submitButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        const userInfoDisplay = document.getElementById('userInfoDisplay');
+        const userNameSpan = document.getElementById('userName');
+        const userEmailSpan = document.getElementById('userEmail');
+        const userClassInfoSpan = document.getElementById('userClassInfo');
+        const googleSignInButton = document.getElementById('googleSignInButton');
+        const signOutButton = document.getElementById('signOutButton');
+        const adminPanelButton = document.getElementById('adminPanelButton');
+        
+        const inputSection = document.getElementById('inputSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const noClassAssignedMessage = document.getElementById('noClassAssignedMessage');
+        
+        const modalActions = document.getElementById('modalActions');
+        const modalDefaultCloseButton = document.getElementById('modalDefaultCloseButton');
+
+        // Modal Fonksiyonları
+        function showModal(title, message) {
+            const modal = document.getElementById('messageModal');
+            const content = document.getElementById('modalContent');
+            
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            
+            modalActions.innerHTML = '';
+            modalActions.appendChild(modalDefaultCloseButton);
+            modalDefaultCloseButton.classList.remove('hidden');
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        window.closeModal = function() {
+            const modal = document.getElementById('messageModal');
+            const content = document.getElementById('modalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // Ödev Düzenleme Modalı Kapatma
+        window.closeEditModal = function() {
+            const modal = document.getElementById('editEntryModal');
+            const content = document.getElementById('editModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // YÖNETİCİ MODALI Fonksiyonları
+        window.openAdminModal = function() {
+            loadAdminAssignments(); // Modalı açarken listeyi yükle
+            const modal = document.getElementById('adminModal');
+            const content = document.getElementById('adminModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        window.closeAdminModal = function() {
+            const modal = document.getElementById('adminModal');
+            const content = document.getElementById('adminModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Google ile Giriş Yapma Fonksiyonu
+        window.signInWithGoogle = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Girişi Hatası: ", error);
+                showModal("Hata", "Google ile giriş yapılırken bir sorun oluştu.");
+            }
+        }
+        
+        // Çıkış Yapma Fonksiyonu
+        window.signOutUser = async function() {
+            try {
+                await signOut(auth);
+                // Reset UI
+                resetUI();
+            } catch (error) {
+                console.error("Çıkış Yapma Hatası: ", error);
+                showModal("Hata", "Çıkış yapılırken bir sorun oluştu.");
+            }
+        }
+        
+        // UI'ı temizleme fonksiyonu
+        function resetUI() {
+            userId = null;
+            userEmail = null;
+            userClass = null;
+            isAdmin = false;
+            
+            userInfoDisplay.classList.add('hidden');
+            signOutButton.classList.add('hidden');
+            adminPanelButton.classList.add('hidden');
+            inputSection.classList.add('hidden');
+            dashboardSection.classList.add('hidden');
+            noClassAssignedMessage.classList.add('hidden');
+            
+            googleSignInButton.classList.remove('hidden');
+            resultsContainer.innerHTML = '';
+            
+            if (homeworkDataListener) {
+                homeworkDataListener(); // Eski snapshot listener'ı kapat
+                homeworkDataListener = null;
+            }
+        }
+
+
+        // Firebase Başlangıcı
+        try {
+            // firebaseConfig artık yukarıda (düzeltme bloğunda) tanımlandı.
+            if (firebaseConfig && firebaseConfig.apiKey) {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('error'); 
+
+                setPersistence(auth, browserLocalPersistence).catch((error) => {
+                    console.error("Auth Persistence Hatası: ", error);
+                });
+
+                // Yetkilendirme Durumu Değişikliğini Dinle
+                onAuthStateChanged(auth, (user) => {
+                    resetUI(); // Her auth değişiminde UI'ı sıfırla
+                    
+                    if (user) {
+                        // Kullanıcı Giriş Yapmış
+                        userId = user.uid;
+                        userEmail = user.email;
+                        
+                        // UI'ı güncelle
+                        userNameSpan.textContent = user.displayName || "Kullanıcı";
+                        userEmailSpan.textContent = `(${userEmail})`;
+                        userInfoDisplay.classList.remove('hidden');
+                        googleSignInButton.classList.add('hidden');
+                        signOutButton.classList.remove('hidden');
+                        
+                        // Admin kontrolü
+                        if (userEmail === ADMIN_EMAIL) {
+                            isAdmin = true;
+                            adminPanelButton.classList.remove('hidden');
+                        }
+                        
+                        // Kullanıcının sınıfını bul
+                        findUserClass(userEmail);
+                        
+                    } else {
+                        // Kullanıcı Çıkış Yapmış
+                        googleSignInButton.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error("Firebase yapılandırması eksik.");
+                showModal("Hata", "Uygulama başlatılamadı: Firebase ayarları eksik.");
+            }
+        } catch (error) {
+            console.error("Firebase başlangıç hatası:", error);
+            showModal("Hata", "Uygulama başlatılamadı: Firebase hatası.");
+        }
+        
+        // Kullanıcının sınıfını Firestore'dan bulma
+        async function findUserClass(email) {
+            userClassInfoSpan.textContent = "Sınıf bilgisi aranıyor...";
+            userClassInfoSpan.classList.remove('text-red-600');
+            userClassInfoSpan.classList.add('text-gray-500');
+
+            try {
+                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
+                const q = query(collection(db, ASSIGNMENT_COLLECTION), where("userEmail", "==", email));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    // Kullanıcı bir sınıfa atanmış
+                    userClass = querySnapshot.docs[0].data().className;
+                    userClassInfoSpan.textContent = `Sınıf: ${userClass}`;
+                    userClassInfoSpan.classList.remove('text-gray-500', 'text-red-600');
+                    userClassInfoSpan.classList.add('text-green-600');
+
+                    // Sınıfa özel UI'ı göster
+                    inputSection.classList.remove('hidden');
+                    dashboardSection.classList.remove('hidden');
+                    noClassAssignedMessage.classList.add('hidden');
+                    
+                    // Bu sınıfa ait ödevleri dinle
+                    setupHomeworkListener(userClass);
+                    
+                } else {
+                    // Kullanıcı bir sınıfa atanmamış
+                    userClassInfoSpan.textContent = "Bir sınıfa atanmamışsınız.";
+                    userClassInfoSpan.classList.add('text-red-600');
+                    dashboardSection.classList.add('hidden');
+                    
+                    // Eğer admin değilse "sınıfa atanmadınız" mesajı göster
+                    if (!isAdmin) {
+                        noClassAssignedMessage.classList.remove('hidden');
+                    } else {
+                        // Admin atanmamışsa bile ödev girebilmeli (belki?)
+                        // Şimdilik admin de atanmalı kuralı koyalım.
+                        noClassAssignedMessage.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Sınıf bilgisi alınırken hata: ", error);
+                userClassInfoSpan.textContent = "Sınıf bilgisi alınamadı.";
+                userClassInfoSpan.classList.add('text-red-600');
+                showModal("Hata", "Kullanıcı sınıf bilgisi alınırken bir hata oluştu. (Konsolu kontrol edin)");
+            }
+        }
+
+
+        // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD.MM.YYYY)
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}.${month}.${year}`;
+        }
+        
+        // Ödev Kaydetme İşlemi
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userClass) {
+                showModal("Hata", "Ödev kaydetmek için bir sınıfa atanmış olmalısınız.");
+                return;
+            }
+
+            submitButton.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+
+            const date = document.getElementById('date').value;
+            const subject = document.getElementById('subject').value;
+            const source = document.getElementById('source').value.trim();
+            const description = document.getElementById('description').value.trim();
+            
+            if (!date || !subject || subject === "" || !description) {
+                showModal("Uyarı", "Lütfen Tarih, Ders ve Ödev Açıklaması alanlarını doldurun.");
+                submitButton.disabled = false;
+                loadingSpinner.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const homeworkData = {
+                    date: date,
+                    subject: subject,
+                    source: source,
+                    description: description,
+                    timestamp: serverTimestamp(),
+                    authorEmail: userEmail // Ödevi kimin eklediğini bilmek için
+                };
+
+                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 2 =====
+                // HATA: .../homework/8A (6 segmentli doküman yolu)
+                // DOĞRU: .../homework/8A/entries (7 segmentli koleksiyon yolu)
+                const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`;
+                // ===== SON: YOL DÜZELTMESİ 2 =====
+                
+                await addDoc(collection(db, collectionPath), homeworkData);
+                
+                form.reset();
+                document.getElementById('date').valueAsDate = new Date();
+
+                showModal("Başarılı", `<strong>${formatDate(date)}</strong> tarihli <strong>${subject}</strong> dersi ödevi başarıyla kaydedildi.`);
+            } catch (error) {
+                console.error("Ödev kaydetme hatası: ", error);
+                showModal("Hata", "Ödev kaydedilirken bir sorun oluştu.");
+            } finally {
+                submitButton.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Ödev Verilerini Çekme (Sınıfa Göre)
+        function setupHomeworkListener(className) {
+            if (!db || !className) return;
+
+            // Varsa eski listener'ı kapat
+            if (homeworkDataListener) {
+                homeworkDataListener();
+            }
+
+            // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 3 =====
+            // HATA: .../homework/8A (6 segmentli doküman yolu)
+            // DOĞRU: .../homework/8A/entries (7 segmentli koleksiyon yolu)
+            const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${className}/entries`;
+            // ===== SON: YOL DÜZELTMESİ 3 =====
+            
+            const q = query(collection(db, collectionPath), orderBy("date", "desc"), orderBy("timestamp", "desc")); 
+
+            loadingMessage.classList.remove('hidden');
+            resultsContainer.innerHTML = '';
+
+            homeworkDataListener = onSnapshot(q, (snapshot) => {
+                const homeworkEntries = [];
+                allEntriesMap.clear(); 
+                snapshot.forEach((doc) => {
+                    const entry = { id: doc.id, ...doc.data() };
+                    homeworkEntries.push(entry);
+                    allEntriesMap.set(doc.id, entry);
+                });
+                renderResults(homeworkEntries);
+            }, (error) => {
+                console.error("Ödev çekme hatası: ", error);
+                loadingMessage.textContent = "Ödevler yüklenirken bir hata oluştu.";
+                showModal("Hata", "Ödevler çekilirken bir sorun oluştu.");
+            });
+        }
+        
+        // GİZLİ KAYITLARI GÖSTER/GİZLE FONKSİYONU
+        window.toggleDayEntries = function(date) {
+            const hiddenContainer = document.getElementById(`hidden-entries-${date}`);
+            const toggleButton = document.getElementById(`toggle-button-${date}`);
+            
+            if (hiddenContainer.classList.contains('hidden')) {
+                hiddenContainer.classList.remove('hidden');
+                toggleButton.textContent = '▲ Kapat';
+                toggleButton.classList.remove('text-indigo-500');
+                toggleButton.classList.add('text-red-500');
+            } else {
+                hiddenContainer.classList.add('hidden');
+                const count = parseInt(toggleButton.dataset.count);
+                toggleButton.textContent = `... ${count} Ödev Daha Göster`;
+                toggleButton.classList.remove('text-red-500');
+                toggleButton.classList.add('text-indigo-500');
+            }
+        }
+
+
+        // Sonuçları (Ödevleri) Render Etme
+        function renderResults(entries) {
+            loadingMessage.classList.add('hidden');
+            resultsContainer.innerHTML = '';
+            
+            if (entries.length === 0) {
+                resultsContainer.innerHTML = `<div class="w-full flex justify-center items-center"><p class="text-center text-gray-500 p-8 bg-white rounded-xl shadow-inner w-full max-w-sm"><strong>${userClass}</strong> sınıfı için henüz kayıtlı ödev yok. Yukarıdaki formu kullanarak ilk kaydı oluşturun!</p></div>`;
+                return;
+            }
+
+            const groupedByDate = entries.reduce((acc, entry) => {
+                (acc[entry.date] = acc[entry.date] || []).push(entry);
+                return acc;
+            }, {});
+
+            // En eski tarih solda, en yeni sağda (kaydırma için)
+            const sortedDates = Object.keys(groupedByDate).sort(); 
+
+            sortedDates.forEach(date => {
+                const dateColumn = document.createElement('div');
+                dateColumn.className = 'w-72 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-md p-4 space-y-3';
+                
+                const sortedEntries = groupedByDate[date];
+                
+                // Günlük Toplam Ödev Sayısı
+                const totalDailyHomeworks = sortedEntries.length;
+
+                const dateHeader = document.createElement('h3');
+                let headerText = formatDate(date);
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
+
+                if (date === today) {
+                    headerText = `BUGÜN (${headerText}) <span class="text-green-500 text-base">★</span>`;
+                    dateColumn.classList.add('border-indigo-500', 'border-2', 'shadow-xl');
+                } else if (date === yesterday) {
+                    headerText = `DÜN (${headerText})`;
+                }
+
+                dateHeader.className = 'text-lg font-bold text-gray-800 border-b pb-2 mb-3';
+                dateHeader.innerHTML = headerText;
+                dateColumn.appendChild(dateHeader);
+                
+                // Toplam Ödev Sayısı Ekranı
+                const totalHomeworkDisplay = document.createElement('p');
+                totalHomeworkDisplay.className = 'text-sm font-semibold text-indigo-600 mb-2';
+                totalHomeworkDisplay.innerHTML = `Verilen Ödev: <span class="text-xl font-extrabold">${totalDailyHomeworks}</span>`;
+                dateColumn.appendChild(totalHomeworkDisplay);
+
+                // Gösterme mantığı aynı
+                const visibleEntries = sortedEntries.slice(0, 3);
+                const hiddenEntries = sortedEntries.slice(3);
+
+                visibleEntries.forEach(entry => {
+                    dateColumn.appendChild(createEntryCard(entry, date));
+                });
+
+                if (hiddenEntries.length > 0) {
+                    const hiddenDiv = document.createElement('div');
+                    hiddenDiv.id = `hidden-entries-${date}`;
+                    hiddenDiv.className = 'hidden space-y-3 pt-3 border-t border-gray-200';
+                    
+                    hiddenEntries.forEach(entry => {
+                        hiddenDiv.appendChild(createEntryCard(entry, date));
+                    });
+                    dateColumn.appendChild(hiddenDiv);
+
+                    const toggleButton = document.createElement('button');
+                    toggleButton.id = `toggle-button-${date}`;
+                    toggleButton.dataset.count = hiddenEntries.length;
+                    toggleButton.className = 'w-full text-center text-sm font-semibold text-indigo-500 hover:text-indigo-700 transition duration-150 pt-2';
+                    toggleButton.textContent = `... ${hiddenEntries.length} Ödev Daha Göster`;
+                    toggleButton.onclick = () => toggleDayEntries(date);
+                    dateColumn.appendChild(toggleButton);
+                }
+
+                resultsContainer.appendChild(dateColumn);
+            });
+            
+            // En sağa (en yeni güne) kaydır
+            const dashboardContainer = document.getElementById('dashboardContainer');
+            setTimeout(() => {
+                const maxScrollLeft = dashboardContainer.scrollWidth - dashboardContainer.clientWidth;
+                if (maxScrollLeft > 0) {
+                    dashboardContainer.scrollLeft = maxScrollLeft;
+                }
+            }, 50);
+        }
+        
+        // Tek bir ÖDEV KARTI oluşturan fonksiyon
+        function createEntryCard(entry, date) {
+            const entryDiv = document.createElement('div');
+            entryDiv.id = `entry-${entry.id}`;
+            entryDiv.className = 'p-3 rounded-lg bg-gray-50 border border-gray-100 transition duration-150 shadow-sm hover:shadow-md';
+            
+            const sourceHtml = entry.source && entry.source.length > 0
+                ? `<p class="text-xs text-gray-500 italic mb-2 truncate" title="${entry.source}"><strong>Kaynak:</strong> ${entry.source}</p>`
+                : '';
+                
+            const authorHtml = entry.authorEmail
+                ? `<p class="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-200">Ekleyen: ${entry.authorEmail}</p>`
+                : '';
+
+            entryDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-1">
+                    <p class="text-base font-semibold text-indigo-700 leading-tight">${entry.subject}</p>
+                    <div class="flex space-x-2">
+                        <!-- Düzenle Butonu -->
+                        <button onclick="openEditModal('${entry.id}')" 
+                                class="text-gray-400 hover:text-indigo-600 transition duration-150 p-1 rounded-full flex-shrink-0"
+                                title="Kaydı Düzenle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <!-- Silme Butonu -->
+                        <button onclick="confirmDelete('${entry.id}', '${entry.subject}', '${date}')" 
+                                class="text-gray-400 hover:text-red-600 transition duration-150 p-1 rounded-full flex-shrink-0"
+                                title="Kaydı Sil">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                ${sourceHtml}
+                <!-- Ödev Açıklaması -->
+                <p class="text-sm text-gray-800 bg-white p-2 rounded border border-gray-200 whitespace-pre-wrap">${entry.description}</p>
+                ${authorHtml}
+            `;
+            return entryDiv;
+        }
+        
+        // Silme Onay Modalı
+        window.confirmDelete = function(id, subject, date) {
+            const modal = document.getElementById('messageModal');
+            const content = document.getElementById('modalContent');
+            const modalActions = document.getElementById('modalActions');
+            
+            document.getElementById('modalTitle').textContent = "Ödev Kaydını Sil Onayı";
+            document.getElementById('modalMessage').innerHTML = `
+                <p class="text-gray-700 mb-4">
+                    <strong>${formatDate(date)}</strong> tarihli <strong>${subject}</strong> dersi ödev kaydını silmek istediğinizden emin misiniz?
+                </p>
+            `;
+
+            modalActions.innerHTML = `
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">İptal</button>
+                <button onclick="deleteEntry('${id}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Evet, Sil</button>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+             setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Silme İşlemi
+        window.deleteEntry = async function(id) {
+            closeModal();
+            if (!db || !userClass) {
+                showModal("Hata", "Veritabanı bağlantısı hazır değil veya sınıf bilgisi yok.");
+                return;
+            }
+            try {
+                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 4 =====
+                // Silme işlemi de doğru alt koleksiyon yolunu (7 segment) kullanmalı
+                const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`;
+                // ===== SON: YOL DÜZELTMESİ 4 =====
+                
+                await deleteDoc(doc(db, collectionPath, id));
+                showModal("Başarılı", "Ödev kaydı başarıyla silindi.");
+            } catch (error) {
+                console.error("Kayıt silme hatası: ", error);
+                showModal("Hata", "Kayıt silinirken bir sorun oluştu.");
+            }
+        }
+        
+        // Ödev Düzenleme Modalı Açma
+        window.openEditModal = function(id) {
+            const entry = allEntriesMap.get(id);
+            if (!entry) {
+                showModal("Hata", "Düzenlenecek kayıt bulunamadı.");
+                return;
+            }
+            
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-date').value = entry.date;
+            document.getElementById('edit-subject').value = entry.subject;
+            document.getElementById('edit-source').value = entry.source || '';
+            document.getElementById('edit-description').value = entry.description || '';
+            
+            const modal = document.getElementById('editEntryModal');
+            const content = document.getElementById('editModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Ödev Güncelleme İşlemi
+        window.updateEntry = async function(e) {
+            e.preventDefault();
+            if (!userClass) {
+                showModal("Hata", "Oturum bilgisi eksik.");
+                return;
+            }
+            
+            const id = document.getElementById('edit-id').value;
+            const date = document.getElementById('edit-date').value;
+            const subject = document.getElementById('edit-subject').value;
+            const source = document.getElementById('edit-source').value.trim();
+            const description = document.getElementById('edit-description').value.trim();
+            
+             if (!description) {
+                showModal("Uyarı", "Ödev Açıklaması boş olamaz.");
+                return;
+            }
+            
+            try {
+                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 5 =====
+                // Güncelleme işlemi de doğru alt koleksiyon yolunu (7 segment) kullanmalı
+                const docRef = doc(db, `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`, id);
+                // ===== SON: YOL DÜZELTMESİ 5 =====
+                
+                const updatedData = {
+                    date: date,
+                    subject: subject,
+                    source: source,
+                    description: description,
+                    updatedAt: serverTimestamp() 
+                };
+
+                await setDoc(docRef, updatedData, { merge: true }); 
+                
+                closeEditModal();
+                showModal("Başarılı", `<strong>${formatDate(date)}</strong> tarihli ödev kaydı başarıyla güncellendi.`);
+                
+            } catch (error) {
+                console.error("Kayıt güncelleme hatası: ", error);
+                showModal("Hata", "Kayıt güncellenirken bir sorun oluştu.");
+            }
+        }
+        
+        // --- YÖNETİCİ PANELİ FONKSİYONLARI ---
+        
+        // Atamaları Yükle
+        async function loadAdminAssignments() {
+            const listContainer = document.getElementById('adminAssignmentList');
+            const loading = document.getElementById('adminAssignmentListLoading');
+            listContainer.innerHTML = '';
+            loading.classList.remove('hidden');
+
+            try {
+                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
+                const q = query(collection(db, ASSIGNMENT_COLLECTION), orderBy("userEmail"));
+                const querySnapshot = await getDocs(q);
+                
+                if(querySnapshot.empty) {
+                    listContainer.innerHTML = '<p class="text-gray-500">Henüz sınıf ataması yapılmamış.</p>';
+                } else {
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const item = document.createElement('div');
+item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                        item.innerHTML = `
+                            <div>
+                                <span class="font-semibold text-gray-800">${data.userEmail}</span>
+                                <span class="text-sm text-blue-600 ml-2">(${data.className})</span>
+                            </div>
+                            <button onclick="deleteAssignment('${doc.id}', '${data.userEmail}')" 
+                                    class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition">
+                                Sil
+                            </button>
+                        `;
+                        listContainer.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error("Atama listesi yüklenemedi: ", error);
+                listContainer.innerHTML = '<p class="text-red-500">Atamalar yüklenirken bir hata oluştu.</p>';
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+        
+        // Atama Ekle veya Güncelle
+        window.addOrUpdateAssignment = async function() {
+            const email = document.getElementById('admin-email').value.trim().toLowerCase();
+            const className = document.getElementById('admin-class').value.trim();
+            
+            if (!email || !className) {
+                showModal("Uyarı", "Email ve Sınıf alanları zorunludur.");
+                return;
+            }
+            
+            try {
+                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
+                const q = query(collection(db, ASSIGNMENT_COLLECTION), where("userEmail", "==", email));
+                const querySnapshot = await getDocs(q);
+                
+                let docId = null;
+                if (!querySnapshot.empty) {
+                    // Varsa: docId'sini al
+                    docId = querySnapshot.docs[0].id;
+                }
+                
+                const data = {
+                    userEmail: email,
+                    className: className
+                };
+                
+                if (docId) {
+                    // Güncelle
+                    const docRef = doc(db, ASSIGNMENT_COLLECTION, docId);
+                    await setDoc(docRef, data, { merge: true }); // setDoc merge ile güncelleme yapar
+                    showModal("Başarılı", `<strong>${email}</strong> kullanıcısının sınıfı <strong>${className}</strong> olarak güncellendi.`);
+                } else {
+                    // Yoksa: Yeni Ekle
+                    await addDoc(collection(db, ASSIGNMENT_COLLECTION), data);
+                    showModal("Başarılı", `<strong>${email}</strong> kullanıcısı <strong>${className}</strong> sınıfına başarıyla eklendi.`);
+                }
+                
+                document.getElementById('adminForm').reset();
+                loadAdminAssignments(); // Listeyi yenile
+                
+            } catch (error) {
+                console.error("Atama kaydedilirken hata: ", error);
+                showModal("Hata", "Atama kaydedilirken bir sorun oluştu.");
+            }
+        }
+        
+        // Atama Sil
+        window.deleteAssignment = async function(docId, email) {
+            // Silme onayı (showModal'ın özel versiyonu)
+            const modal = document.getElementById('messageModal');
+            const content = document.getElementById('modalContent');
+            const modalActions = document.getElementById('modalActions');
+            
+            document.getElementById('modalTitle').textContent = "Atamayı Sil Onayı";
+            document.getElementById('modalMessage').innerHTML = `<strong>${email}</strong> kullanıcısını sınıftan çıkarmak istediğinizden emin misiniz?`;
+
+            modalActions.innerHTML = `
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">İptal</button>
+                <button id="confirmDeleteButton" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Evet, Sil</button>
+            `;
+            
+            document.getElementById('confirmDeleteButton').onclick = async () => {
+                closeModal();
+                try {
+                    // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
+                    await deleteDoc(doc(db, ASSIGNMENT_COLLECTION, docId));
+                    showModal("Başarılı", `${email} kullanıcısının ataması silindi.`);
+                    loadAdminAssignments(); // Listeyi yenile
+                } catch (error) {
+                    console.error("Atama silinirken hata: ", error);
+                    showModal("Hata", "Atama silinirken bir sorun oluştu.");
+                }
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+             setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // Sayfa yüklendiğinde bugünün tarihini ayarla
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            
+            document.getElementById('date').value = `${year}-${month}-${day}`;
+        });
+
+    </script>
+</body>
+</html>
+
+
