@@ -11,24 +11,27 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
         /* Yatay kaydırma çubuğu */
         .scroll-container {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: thin;  /* Firefox */
-            scrollbar-color: #cbd5e1 transparent; /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: #4f46e5 #e0e7ff;
             scroll-behavior: smooth;
         }
         .scroll-container::-webkit-scrollbar {
-            height: 6px;
+            height: 10px;
         }
         .scroll-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1; /* slate-300 */
-            border-radius: 3px;
+            background-color: #4f46e5;
+            border-radius: 10px;
+            background-clip: padding-box;
+            border: 2px solid transparent;
         }
         .scroll-container::-webkit-scrollbar-track {
-            background-color: transparent;
+            background-color: #e0e7ff;
+            border-radius: 10px;
         }
         /* Yükleme ikonu için animasyon */
         @keyframes spin {
@@ -37,61 +40,123 @@
         .spinner {
             animation: spin 1s linear infinite;
         }
+        /* Kart hover efektleri */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+        }
+        /* Gradient border */
+        .gradient-border {
+            border: double 3px transparent;
+            border-radius: 12px;
+            background-image: linear-gradient(white, white), 
+                              linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+        /* Pulsing animation for today's card */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(79, 70, 229, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(79, 70, 229, 0.6); }
+        }
+        .today-glow {
+            animation: pulse-glow 2s infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 sm:p-6">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b-4 border-indigo-600 pb-2">Sınıf Ödev Takibi</h1>
-        
-        <!-- YETKİLENDİRME BUTONLARI VE KULLANICI BİLGİSİ -->
-        <div id="authContainer" class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
-            
-            <!-- Kullanıcı Bilgisi (Giriş Yapıldığında Görünür) -->
-            <div id="userInfoDisplay" class="text-sm text-gray-600 p-3 bg-white rounded-lg shadow-sm truncate w-full sm:w-auto hidden">
-                <span class="font-semibold text-gray-800" id="userName">Yükleniyor...</span>
-                <span classs="block text-xs text-gray-400 mt-0.5" id="userEmail"></span>
-                <span class="block text-xs text-green-600 font-semibold mt-0.5" id="userClassInfo">Sınıf bilgisi yükleniyor...</span>
+    <div class="max-w-6xl mx-auto">
+        <!-- Başlık ve Logo -->
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-8">
+            <div class="flex items-center space-x-3 mb-4 sm:mb-0">
+                <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Sınıf Ödev Takibi</h1>
+                    <p class="text-gray-600 text-sm">Ödevlerinizi takip etmenin en kolay yolu</p>
+                </div>
             </div>
+            
+            <!-- YETKİLENDİRME BÖLÜMÜ -->
+            <div id="authContainer" class="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <!-- Kullanıcı Bilgisi -->
+                <div id="userInfoDisplay" class="text-sm p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 hidden">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            <span id="userInitial">Y</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-800 block" id="userName">Yükleniyor...</span>
+                            <span class="text-xs text-gray-500 block" id="userEmail"></span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200 mt-1 inline-block" id="userClassInfo">Sınıf bilgisi yükleniyor...</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="flex space-x-3 w-full sm:w-auto justify-end">
-                <!-- YÖNETİM PANELİ BUTONU (Sadece Admin için) -->
-                <button id="adminPanelButton" onclick="openAdminModal()" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-200 shadow-lg flex items-center justify-center hidden">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                    Yönetim Paneli
-                </button>
+                <div class="flex space-x-3">
+                    <!-- YÖNETİM PANELİ BUTONU -->
+                    <button id="adminPanelButton" onclick="openAdminModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center hidden transform hover:-translate-y-0.5">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Yönetim
+                    </button>
 
-                <!-- Giriş Yap Butonu (Çıkış Yapıldığında Görünür) -->
-                <button id="googleSignInButton" onclick="signInWithGoogle()" class="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition duration-200 shadow-lg flex items-center justify-center hidden">
-                    <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M48.0001 24.0001C48.0001 22.091 47.8211 20.2183 47.4701 18.4092H24.4828V28.938H37.8183C37.2601 32.148 35.7819 34.8819 33.6664 36.3815V42.784H41.8741C45.7412 39.2183 48.0001 32.1819 48.0001 24.0001Z" fill="#4285F4"></path><path d="M24.4827 48.0001C31.0661 48.0001 36.6368 45.8368 40.4939 42.784L33.6664 36.3815C31.5432 37.8211 28.6095 38.6819 24.4827 38.6819C18.2732 38.6819 13.0913 34.6186 11.2368 28.991H3.00006V35.4819C6.73869 42.9001 15.0005 48.0001 24.4827 48.0001Z" fill="#34A853"></path><path d="M11.2368 28.9909C10.7459 27.509 10.455 25.9363 10.455 24.3181C10.455 22.6999 10.7459 21.1272 11.2368 19.6454V13.1545H3.00006C1.09131 16.6181 0 20.3636 0 24.3181C0 28.2726 1.09131 32.0181 3.00006 35.4817L11.2368 28.9909Z" fill="#FBBC05"></path><path d="M24.4827 9.95449C28.8732 9.95449 32.2277 11.3918 34.8095 13.7818L40.7277 7.8636C36.6368 4.18632 31.0661 1.63632 24.4827 1.63632C15.0005 1.63632 6.73869 6.73632 3.00006 14.1545L11.2368 20.6454C13.0913 15.0181 18.2732 9.95449 24.4827 9.95449Z" fill="#EA4335"></path></svg>
-                    Google ile Giriş Yap
-                </button>
-                
-                <!-- Çıkış Yap Butonu (Giriş Yapıldığında Görünür) -->
-                <button id="signOutButton" onclick="signOutUser()" class="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-200 shadow-md hidden">
-                    Çıkış Yap
-                </button>
+                    <!-- Giriş Yap Butonu -->
+                    <button id="googleSignInButton" onclick="signInWithGoogle()" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center hidden transform hover:-translate-y-0.5">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M48.0001 24.0001C48.0001 22.091 47.8211 20.2183 47.4701 18.4092H24.4828V28.938H37.8183C37.2601 32.148 35.7819 34.8819 33.6664 36.3815V42.784H41.8741C45.7412 39.2183 48.0001 32.1819 48.0001 24.0001Z" fill="#4285F4"></path><path d="M24.4827 48.0001C31.0661 48.0001 36.6368 45.8368 40.4939 42.784L33.6664 36.3815C31.5432 37.8211 28.6095 38.6819 24.4827 38.6819C18.2732 38.6819 13.0913 34.6186 11.2368 28.991H3.00006V35.4819C6.73869 42.9001 15.0005 48.0001 24.4827 48.0001Z" fill="#34A853"></path><path d="M11.2368 28.9909C10.7459 27.509 10.455 25.9363 10.455 24.3181C10.455 22.6999 10.7459 21.1272 11.2368 19.6454V13.1545H3.00006C1.09131 16.6181 0 20.3636 0 24.3181C0 28.2726 1.09131 32.0181 3.00006 35.4817L11.2368 28.9909Z" fill="#FBBC05"></path><path d="M24.4827 9.95449C28.8732 9.95449 32.2277 11.3918 34.8095 13.7818L40.7277 7.8636C36.6368 4.18632 31.0661 1.63632 24.4827 1.63632C15.0005 1.63632 6.73869 6.73632 3.00006 14.1545L11.2368 20.6454C13.0913 15.0181 18.2732 9.95449 24.4827 9.95449Z" fill="#EA4335"></path></svg>
+                        Google ile Giriş
+                    </button>
+                    
+                    <!-- Çıkış Yap Butonu -->
+                    <button id="signOutButton" onclick="signOutUser()" class="px-5 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md flex items-center justify-center hidden transform hover:-translate-y-0.5">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Çıkış Yap
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- YENİ ÖDEV GİRİŞ FORMU BÖLÜMÜ (Giriş Yapıldığında ve Sınıfa Atandığında Görünür) -->
+        <!-- YENİ ÖDEV GİRİŞ FORMU BÖLÜMÜ -->
         <div id="inputSection" class="hidden">
-            <div class="bg-white p-6 rounded-xl shadow-2xl mb-8 border-t-8 border-indigo-500">
-                <h2 class="text-2xl font-bold text-indigo-700 mb-6">Yeni Ödev Girişi</h2>
-                <form id="homeworkForm" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    
-                    <!-- Tarih ve Ders Seçimi Grubu -->
-                    <div class="space-y-4">
+            <div class="bg-gradient-to-br from-white to-indigo-50 p-6 rounded-2xl shadow-2xl mb-8 border border-indigo-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl mr-4 shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">Yeni Ödev Girişi</h2>
+                </div>
+                
+                <form id="homeworkForm" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Tarih ve Ders Grubu -->
+                    <div class="space-y-5">
                         <!-- Tarih Seçimi -->
                         <div>
-                            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">📅 Ödev Tarihi</label>
-                            <input type="date" id="date" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                            <label for="date" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Ödev Tarihi
+                            </label>
+                            <input type="date" id="date" required class="w-full p-4 border-2 border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white shadow-sm">
                         </div>
                         
-                        <!-- Ders Seçimi (Paragraf kaldırıldı) -->
+                        <!-- Ders Seçimi -->
                         <div>
-                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">📚 Ders Seçimi</label>
-                            <select id="subject" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white transition duration-150">
-                                <option value="" disabled selected>Ders Seçiniz</option>
+                            <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                                Ders Seçimi
+                            </label>
+                            <select id="subject" required class="w-full p-4 border-2 border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white shadow-sm appearance-none">
+                                <option value="" disabled selected>Lütfen bir ders seçiniz</option>
                                 <option value="Türkçe">Türkçe</option>
                                 <option value="Din">Din Kültürü</option>
                                 <option value="Matematik">Matematik</option>
@@ -105,23 +170,33 @@
                     </div>
 
                     <!-- Açıklama ve Kaynak Grubu -->
-                    <div class="space-y-4">
-                        <!-- Kaynak/Yayın Adı (Opsiyonel) -->
+                    <div class="space-y-5">
+                        <!-- Kaynak/Yayın Adı -->
                         <div>
-                            <label for="source" class="block text-sm font-medium text-gray-700 mb-1">📖 Kaynak/Kitap (Opsiyonel)</label>
-                            <input type="text" id="source" placeholder="Örn: Fenomen Soru Bankası, Sayfa 20-25" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                            <label for="source" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                                Kaynak/Kitap (Opsiyonel)
+                            </label>
+                            <input type="text" id="source" placeholder="Örn: Fenomen Soru Bankası, Sayfa 20-25" class="w-full p-4 border-2 border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white shadow-sm">
                         </div>
                         
                         <!-- Ödev Açıklaması -->
                         <div>
-                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">📝 Ödev Açıklaması</label>
-                            <textarea id="description" rows="3" required placeholder="Verilen ödevin detaylarını buraya yazın..." class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"></textarea>
+                            <label for="description" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Ödev Açıklaması
+                            </label>
+                            <textarea id="description" rows="3" required placeholder="Verilen ödevin detaylarını buraya yazın..." class="w-full p-4 border-2 border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white shadow-sm"></textarea>
                         </div>
                     </div>
                     
                     <!-- Gönder Butonu -->
-                    <div class="col-span-1 sm:col-span-2 flex justify-center mt-2">
-                        <button type="submit" id="submitButton" class="w-full max-w-sm px-8 py-4 bg-indigo-600 text-white font-bold text-lg rounded-xl hover:bg-indigo-700 transition duration-200 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-[1.01] flex items-center justify-center">
+                    <div class="lg:col-span-2">
+                        <button type="submit" id="submitButton" class="w-full max-w-md mx-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 flex items-center justify-center">
                             <svg id="loadingSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -133,55 +208,91 @@
             </div>
         </div>
         
-        <!-- SINIF ATAMA BEKLEME MESAJI (Giriş yapmış ama sınıfı yoksa) -->
-        <div id="noClassAssignedMessage" class="hidden text-center p-8 bg-white rounded-xl shadow-lg">
-            <h2 class="text-2xl font-bold text-yellow-700 mb-4">Beklemedesiniz</h2>
-            <p class="text-gray-700">Giriş yaptınız ancak henüz bir sınıfa atanmamışsınız.</p>
-            <p class="text-gray-700 mt-2">Lütfen ödevleri görmek için yöneticinizden (<strong class="text-gray-900">egemacun@gmail.com</strong>) sizi bir sınıfa atamasını isteyin.</p>
+        <!-- SINIF ATAMA BEKLEME MESAJI -->
+        <div id="noClassAssignedMessage" class="hidden text-center p-8 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg border border-amber-200">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mb-4 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-amber-800 mb-4">Beklemedesiniz</h2>
+            <p class="text-gray-700 mb-3">Giriş yaptınız ancak henüz bir sınıfa atanmamışsınız.</p>
+            <p class="text-gray-700">Lütfen ödevleri görmek için yöneticinizden (<strong class="text-gray-900">egemacun@gmail.com</strong>) sizi bir sınıfa atamasını isteyin.</p>
         </div>
 
-        <!-- ÖDEV PANOSU BÖLÜMÜ (Giriş Yapıldığında Görünür) -->
+        <!-- ÖDEV PANOSU BÖLÜMÜ -->
         <div id="dashboardSection" class="hidden">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Ödev Panosu <span class="text-sm text-gray-500 font-normal">(Günlük ödevleriniz burada listelenir)</span></h2>
+            <div class="flex items-center mb-6">
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Ödev Panosu</h2>
+                    <p class="text-gray-600 text-sm">Günlük ödevleriniz burada listelenir</p>
+                </div>
+            </div>
             
-            <div id="dashboardContainer" class="overflow-x-auto pb-4 scroll-container">
-                <div id="resultsContainer" class="flex flex-nowrap space-x-6 min-h-64">
-                    <p id="loadingMessage" class="text-center text-gray-500 w-full flex items-center justify-center">Ödevler yükleniyor...</p>
+            <div id="dashboardContainer" class="overflow-x-auto pb-6 scroll-container">
+                <div id="resultsContainer" class="flex flex-nowrap space-x-6 min-h-72">
+                    <p id="loadingMessage" class="text-center text-gray-500 w-full flex items-center justify-center">
+                        <svg class="animate-spin h-5 w-5 mr-3 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Ödevler yükleniyor...
+                    </p>
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- MODALLAR -->
     <!-- HATA/BİLGİ MESAJI MODAL -->
-    <div id="messageModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
-            <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-3">Bilgi</h3>
-            <p id="modalMessage" class="text-gray-700 mb-4"></p>
+    <div id="messageModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-white to-gray-50 p-6 rounded-2xl shadow-2xl max-w-sm w-full transform transition-all duration-300 scale-95 opacity-0 border border-gray-200" id="modalContent">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-800">Bilgi</h3>
+            </div>
+            <p id="modalMessage" class="text-gray-700 mb-6"></p>
             <div id="modalActions" class="flex justify-end space-x-3">
-                <button id="modalDefaultCloseButton" onclick="closeModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Kapat</button>
+                <button id="modalDefaultCloseButton" onclick="closeModal()" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md">Kapat</button>
             </div>
         </div>
     </div>
     
     <!-- ÖDEV DÜZENLEME MODALI -->
-    <div id="editEntryModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="editModalContent">
-            <h3 class="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">Ödev Kaydını Düzenle</h3>
-            <form id="editForm" onsubmit="event.preventDefault(); updateEntry(event)">
+    <div id="editEntryModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-white to-gray-50 p-6 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0 border border-gray-200" id="editModalContent">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Ödev Kaydını Düzenle</h3>
+                </div>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <form id="editForm" onsubmit="event.preventDefault(); updateEntry(event)" class="space-y-4">
                 <input type="hidden" id="edit-id">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <!-- Tarih -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="edit-date" class="block text-sm font-medium text-gray-700 mb-1">📅 Ödev Tarihi</label>
-                        <input type="date" id="edit-date" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="edit-date" class="block text-sm font-semibold text-gray-700 mb-2">📅 Ödev Tarihi</label>
+                        <input type="date" id="edit-date" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
                     </div>
                     
-                    <!-- Ders -->
                     <div>
-                        <label for="edit-subject" class="block text-sm font-medium text-gray-700 mb-1">📚 Ders Seçimi</label>
-                        <select id="edit-subject" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                        <label for="edit-subject" class="block text-sm font-semibold text-gray-700 mb-2">📚 Ders Seçimi</label>
+                        <select id="edit-subject" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
                             <option value="Türkçe">Türkçe</option>
                             <option value="Din">Din Kültürü</option>
                             <option value="Matematik">Matematik</option>
@@ -194,56 +305,58 @@
                     </div>
                 </div>
 
-                <!-- Kaynak -->
-                <div class="mb-4">
-                    <label for="edit-source" class="block text-sm font-medium text-gray-700 mb-1">📖 Kaynak/Kitap (Opsiyonel)</label>
-                    <input type="text" id="edit-source" placeholder="Örn: Fenomen Soru Bankası" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <div>
+                    <label for="edit-source" class="block text-sm font-semibold text-gray-700 mb-2">📖 Kaynak/Kitap (Opsiyonel)</label>
+                    <input type="text" id="edit-source" placeholder="Örn: Fenomen Soru Bankası" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
                 </div>
                 
-                <!-- Ödev Açıklaması -->
-                <div class="mb-4">
-                    <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">📝 Ödev Açıklaması</label>
-                    <textarea id="edit-description" rows="3" required class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                <div>
+                    <label for="edit-description" class="block text-sm font-semibold text-gray-700 mb-2">📝 Ödev Açıklaması</label>
+                    <textarea id="edit-description" rows="3" required class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"></textarea>
                 </div>
 
-                <!-- Aksiyon Butonları -->
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">İptal</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">Değişiklikleri Kaydet</button>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-semibold rounded-xl hover:from-gray-400 hover:to-gray-500 transition-all duration-200">İptal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200">Değişiklikleri Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- YÖNETİM PANELİ MODALI (Sadece Admin için) -->
-    <div id="adminModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 hidden items-center justify-center p-4 z-[60]">
-        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-2xl w-full transform transition-all duration-300 scale-95 opacity-0" id="adminModalContent">
-            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 class="text-2xl font-bold text-blue-700">Yönetim Paneli - Sınıf Atama</h3>
-                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+    <!-- YÖNETİM PANELİ MODALI -->
+    <div id="adminModal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden items-center justify-center p-4 z-[60]">
+        <div class="bg-gradient-to-b from-white to-blue-50 p-6 rounded-2xl shadow-2xl max-w-2xl w-full transform transition-all duration-300 scale-95 opacity-0 border border-blue-200" id="adminModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-700">Yönetim Paneli - Sınıf Atama</h3>
+                </div>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition">&times;</button>
             </div>
             
             <!-- Yeni Kullanıcı Ekleme Formu -->
-            <form id="adminForm" onsubmit="event.preventDefault(); addOrUpdateAssignment()" class="mb-6 p-4 bg-gray-50 rounded-lg border">
-                <h4 class="text-lg font-semibold mb-3">Yeni Kullanıcı Ekle / Güncelle</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="sm:col-span-2">
-                        <label for="admin-email" class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Email</label>
-                        <input type="email" id="admin-email" required placeholder="ornek@gmail.com" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            <form id="adminForm" onsubmit="event.preventDefault(); addOrUpdateAssignment()" class="mb-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <h4 class="text-lg font-semibold mb-4 text-blue-800">Yeni Kullanıcı Ekle / Güncelle</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="md:col-span-2">
+                        <label for="admin-email" class="block text-sm font-semibold text-gray-700 mb-2">Kullanıcı Email</label>
+                        <input type="email" id="admin-email" required placeholder="ornek@gmail.com" class="w-full p-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label for="admin-class" class="block text-sm font-medium text-gray-700 mb-1">Sınıf</label>
-                        <input type="text" id="admin-class" required placeholder="Örn: 8A" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <label for="admin-class" class="block text-sm font-semibold text-gray-700 mb-2">Sınıf</label>
+                        <input type="text" id="admin-class" required placeholder="Örn: 8A" class="w-full p-3 border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                 </div>
-                <button type="submit" class="w-full sm:w-auto mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Kaydet</button>
+                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md">Kaydet</button>
             </form>
             
             <!-- Mevcut Atamalar Listesi -->
             <div>
-                <h4 class="text-lg font-semibold mb-3">Mevcut Sınıf Atamaları</h4>
+                <h4 class="text-lg font-semibold mb-4 text-blue-800">Mevcut Sınıf Atamaları</h4>
                 <div id="adminAssignmentListLoading" class="text-gray-500">Liste yükleniyor...</div>
-                <div id="adminAssignmentList" class="max-h-64 overflow-y-auto space-y-2">
+                <div id="adminAssignmentList" class="max-h-64 overflow-y-auto space-y-2 pr-2">
                     <!-- Atamalar buraya dinamik olarak eklenecek -->
                 </div>
             </div>
@@ -259,22 +372,19 @@
         // Global değişkenler
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-homework-tracker';
         
-        // Önceki uygulamadan yedek yapılandırma (Canvas ortamı dışı test için)
         const hardcodedConfigString = {
-		    apiKey: "apikeyplace",
-		    authDomain: "odev-takip-tr.firebaseapp.com",
-		    projectId: "odev-takip-tr",
-		    storageBucket: "odev-takip-tr.firebasestorage.app",
-		    messagingSenderId: "125038307809",
-		    appId: "1:125038307809:web:ff8cd21758dc7b7da48aa0"
-		  };
+            apiKey: "apikeyplace",
+            authDomain: "odev-takip-tr.firebaseapp.com",
+            projectId: "odev-takip-tr",
+            storageBucket: "odev-takip-tr.firebasestorage.app",
+            messagingSenderId: "125038307809",
+            appId: "1:125038307809:web:ff8cd21758dc7b7da48aa0"
+        };
         
-        // __firebase_config'in string mi yoksa object mi olduğunu kontrol et
         const configSource = (typeof __firebase_config !== 'undefined') 
             ? __firebase_config 
             : hardcodedConfigString;
 
-        // Sadece string ise parse et, object ise doğrudan kullan
         const firebaseConfig = (typeof configSource === 'string')
             ? JSON.parse(configSource)
             : configSource;
@@ -283,27 +393,16 @@
         let auth;
         let userId = null;
         let userEmail = null;
-        let userClass = null; // Kullanıcının atandığı sınıf (Örn: "8A")
+        let userClass = null;
         let isAdmin = false;
-        let homeworkDataListener = null; // Sınıf değiştiğinde eski listener'ı kapatmak için
+        let homeworkDataListener = null;
         
-        let allEntriesMap = new Map(); // Tüm girişleri ID'ye göre saklamak için harita
+        let allEntriesMap = new Map();
         
-        // Yönetici Emaili
         const ADMIN_EMAIL = "egemacun@gmail.com";
 
-        // ===== BAŞLANGIÇ: YOL (PATH) DÜZELTMESİ =====
-        // Firestore koleksiyon yolları TEK sayıda segmente sahip olmalıdır.
-        // HATA: .../public/class_assignments (4 segment)
-        // DOĞRU: .../public/data/class_assignments (5 segment)
         const ASSIGNMENT_COLLECTION = `artifacts/${appId}/public/data/class_assignments`;
-        
-        // HATA: .../public/homework (4 segment)
-        // DOĞRU: .../public/data/homework (5 segment)
-        // Bu, "homework" koleksiyonunu tutar (içinde 8A, 8B gibi dokümanlar olacak)
         const HOMEWORK_COLLECTION_BASE = `artifacts/${appId}/public/data/homework`;
-        // ===== SON: YOL (PATH) DÜZELTMESİ =====
-
 
         // UI Elementleri
         const resultsContainer = document.getElementById('resultsContainer');
@@ -315,6 +414,7 @@
         const userInfoDisplay = document.getElementById('userInfoDisplay');
         const userNameSpan = document.getElementById('userName');
         const userEmailSpan = document.getElementById('userEmail');
+        const userInitialSpan = document.getElementById('userInitial');
         const userClassInfoSpan = document.getElementById('userClassInfo');
         const googleSignInButton = document.getElementById('googleSignInButton');
         const signOutButton = document.getElementById('signOutButton');
@@ -323,11 +423,8 @@
         const inputSection = document.getElementById('inputSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const noClassAssignedMessage = document.getElementById('noClassAssignedMessage');
-        
-        const modalActions = document.getElementById('modalActions');
-        const modalDefaultCloseButton = document.getElementById('modalDefaultCloseButton');
 
-        // Modal Fonksiyonları
+        // Modal fonksiyonları
         function showModal(title, message) {
             const modal = document.getElementById('messageModal');
             const content = document.getElementById('modalContent');
@@ -335,9 +432,11 @@
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').innerHTML = message;
             
+            const modalActions = document.getElementById('modalActions');
             modalActions.innerHTML = '';
-            modalActions.appendChild(modalDefaultCloseButton);
-            modalDefaultCloseButton.classList.remove('hidden');
+            const closeButton = document.getElementById('modalDefaultCloseButton').cloneNode(true);
+            modalActions.appendChild(closeButton);
+            closeButton.classList.remove('hidden');
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -359,7 +458,6 @@
             }, 300);
         }
         
-        // Ödev Düzenleme Modalı Kapatma
         window.closeEditModal = function() {
             const modal = document.getElementById('editEntryModal');
             const content = document.getElementById('editModalContent');
@@ -371,9 +469,8 @@
             }, 300);
         }
         
-        // YÖNETİCİ MODALI Fonksiyonları
         window.openAdminModal = function() {
-            loadAdminAssignments(); // Modalı açarken listeyi yükle
+            loadAdminAssignments();
             const modal = document.getElementById('adminModal');
             const content = document.getElementById('adminModalContent');
             modal.classList.remove('hidden');
@@ -395,7 +492,6 @@
             }, 300);
         }
 
-        // Google ile Giriş Yapma Fonksiyonu
         window.signInWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             try {
@@ -406,11 +502,9 @@
             }
         }
         
-        // Çıkış Yapma Fonksiyonu
         window.signOutUser = async function() {
             try {
                 await signOut(auth);
-                // Reset UI
                 resetUI();
             } catch (error) {
                 console.error("Çıkış Yapma Hatası: ", error);
@@ -418,7 +512,6 @@
             }
         }
         
-        // UI'ı temizleme fonksiyonu
         function resetUI() {
             userId = null;
             userEmail = null;
@@ -436,52 +529,54 @@
             resultsContainer.innerHTML = '';
             
             if (homeworkDataListener) {
-                homeworkDataListener(); // Eski snapshot listener'ı kapat
+                homeworkDataListener();
                 homeworkDataListener = null;
             }
         }
 
+        // Kullanıcı baş harfini ayarlama
+        function setUserInitial(name) {
+            if (name && name.length > 0) {
+                userInitialSpan.textContent = name.charAt(0).toUpperCase();
+            } else {
+                userInitialSpan.textContent = 'K';
+            }
+        }
 
-        // Firebase Başlangıcı
         try {
-            // firebaseConfig artık yukarıda (düzeltme bloğunda) tanımlandı.
             if (firebaseConfig && firebaseConfig.apiKey) {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                setLogLevel('error'); 
+                setLogLevel('error');
 
                 setPersistence(auth, browserLocalPersistence).catch((error) => {
                     console.error("Auth Persistence Hatası: ", error);
                 });
 
-                // Yetkilendirme Durumu Değişikliğini Dinle
                 onAuthStateChanged(auth, (user) => {
-                    resetUI(); // Her auth değişiminde UI'ı sıfırla
+                    resetUI();
                     
                     if (user) {
-                        // Kullanıcı Giriş Yapmış
                         userId = user.uid;
                         userEmail = user.email;
                         
-                        // UI'ı güncelle
-                        userNameSpan.textContent = user.displayName || "Kullanıcı";
+                        const displayName = user.displayName || "Kullanıcı";
+                        userNameSpan.textContent = displayName;
+                        setUserInitial(displayName);
                         userEmailSpan.textContent = `(${userEmail})`;
                         userInfoDisplay.classList.remove('hidden');
                         googleSignInButton.classList.add('hidden');
                         signOutButton.classList.remove('hidden');
                         
-                        // Admin kontrolü
                         if (userEmail === ADMIN_EMAIL) {
                             isAdmin = true;
                             adminPanelButton.classList.remove('hidden');
                         }
                         
-                        // Kullanıcının sınıfını bul
                         findUserClass(userEmail);
                         
                     } else {
-                        // Kullanıcı Çıkış Yapmış
                         googleSignInButton.classList.remove('hidden');
                     }
                 });
@@ -494,44 +589,35 @@
             showModal("Hata", "Uygulama başlatılamadı: Firebase hatası.");
         }
         
-        // Kullanıcının sınıfını Firestore'dan bulma
         async function findUserClass(email) {
             userClassInfoSpan.textContent = "Sınıf bilgisi aranıyor...";
             userClassInfoSpan.classList.remove('text-red-600');
             userClassInfoSpan.classList.add('text-gray-500');
 
             try {
-                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
                 const q = query(collection(db, ASSIGNMENT_COLLECTION), where("userEmail", "==", email));
                 const querySnapshot = await getDocs(q);
                 
                 if (!querySnapshot.empty) {
-                    // Kullanıcı bir sınıfa atanmış
                     userClass = querySnapshot.docs[0].data().className;
                     userClassInfoSpan.textContent = `Sınıf: ${userClass}`;
                     userClassInfoSpan.classList.remove('text-gray-500', 'text-red-600');
                     userClassInfoSpan.classList.add('text-green-600');
 
-                    // Sınıfa özel UI'ı göster
                     inputSection.classList.remove('hidden');
                     dashboardSection.classList.remove('hidden');
                     noClassAssignedMessage.classList.add('hidden');
                     
-                    // Bu sınıfa ait ödevleri dinle
                     setupHomeworkListener(userClass);
                     
                 } else {
-                    // Kullanıcı bir sınıfa atanmamış
                     userClassInfoSpan.textContent = "Bir sınıfa atanmamışsınız.";
                     userClassInfoSpan.classList.add('text-red-600');
                     dashboardSection.classList.add('hidden');
                     
-                    // Eğer admin değilse "sınıfa atanmadınız" mesajı göster
                     if (!isAdmin) {
                         noClassAssignedMessage.classList.remove('hidden');
                     } else {
-                        // Admin atanmamışsa bile ödev girebilmeli (belki?)
-                        // Şimdilik admin de atanmalı kuralı koyalım.
                         noClassAssignedMessage.classList.remove('hidden');
                     }
                 }
@@ -539,19 +625,16 @@
                 console.error("Sınıf bilgisi alınırken hata: ", error);
                 userClassInfoSpan.textContent = "Sınıf bilgisi alınamadı.";
                 userClassInfoSpan.classList.add('text-red-600');
-                showModal("Hata", "Kullanıcı sınıf bilgisi alınırken bir hata oluştu. (Konsolu kontrol edin)");
+                showModal("Hata", "Kullanıcı sınıf bilgisi alınırken bir hata oluştu.");
             }
         }
 
-
-        // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD.MM.YYYY)
         function formatDate(dateString) {
             if (!dateString) return '';
             const [year, month, day] = dateString.split('-');
             return `${day}.${month}.${year}`;
         }
         
-        // Ödev Kaydetme İşlemi
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!userClass) {
@@ -581,14 +664,10 @@
                     source: source,
                     description: description,
                     timestamp: serverTimestamp(),
-                    authorEmail: userEmail // Ödevi kimin eklediğini bilmek için
+                    authorEmail: userEmail
                 };
 
-                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 2 =====
-                // HATA: .../homework/8A (6 segmentli doküman yolu)
-                // DOĞRU: .../homework/8A/entries (7 segmentli koleksiyon yolu)
                 const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`;
-                // ===== SON: YOL DÜZELTMESİ 2 =====
                 
                 await addDoc(collection(db, collectionPath), homeworkData);
                 
@@ -605,29 +684,23 @@
             }
         });
 
-        // Ödev Verilerini Çekme (Sınıfa Göre)
         function setupHomeworkListener(className) {
             if (!db || !className) return;
 
-            // Varsa eski listener'ı kapat
             if (homeworkDataListener) {
                 homeworkDataListener();
             }
 
-            // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 3 =====
-            // HATA: .../homework/8A (6 segmentli doküman yolu)
-            // DOĞRU: .../homework/8A/entries (7 segmentli koleksiyon yolu)
             const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${className}/entries`;
-            // ===== SON: YOL DÜZELTMESİ 3 =====
             
-            const q = query(collection(db, collectionPath), orderBy("date", "desc"), orderBy("timestamp", "desc")); 
+            const q = query(collection(db, collectionPath), orderBy("date", "desc"), orderBy("timestamp", "desc"));
 
             loadingMessage.classList.remove('hidden');
             resultsContainer.innerHTML = '';
 
             homeworkDataListener = onSnapshot(q, (snapshot) => {
                 const homeworkEntries = [];
-                allEntriesMap.clear(); 
+                allEntriesMap.clear();
                 snapshot.forEach((doc) => {
                     const entry = { id: doc.id, ...doc.data() };
                     homeworkEntries.push(entry);
@@ -641,7 +714,6 @@
             });
         }
         
-        // GİZLİ KAYITLARI GÖSTER/GİZLE FONKSİYONU
         window.toggleDayEntries = function(date) {
             const hiddenContainer = document.getElementById(`hidden-entries-${date}`);
             const toggleButton = document.getElementById(`toggle-button-${date}`);
@@ -660,14 +732,59 @@
             }
         }
 
+        // Tarih karşılaştırma fonksiyonu - DÜZELTİLMİŞ VERSİYON
+        function compareDates(a, b) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const dateA = new Date(a);
+            const dateB = new Date(b);
+            
+            // Bugün ile karşılaştır - bugüne en yakın en önde
+            const diffA = Math.abs(dateA - today);
+            const diffB = Math.abs(dateB - today);
+            
+            return diffA - diffB;
+        }
 
-        // Sonuçları (Ödevleri) Render Etme
+        // Tarih durumunu belirleme
+        function getDateStatus(dateString) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            const date = new Date(dateString);
+            
+            if (date.toDateString() === today.toDateString()) return 'today';
+            if (date.toDateString() === tomorrow.toDateString()) return 'tomorrow';
+            if (date.toDateString() === yesterday.toDateString()) return 'yesterday';
+            if (date > today) return 'future';
+            return 'past';
+        }
+
+        // Sonuçları Render Etme - DÜZELTİLMİŞ VERSİYON
         function renderResults(entries) {
             loadingMessage.classList.add('hidden');
             resultsContainer.innerHTML = '';
             
             if (entries.length === 0) {
-                resultsContainer.innerHTML = `<div class="w-full flex justify-center items-center"><p class="text-center text-gray-500 p-8 bg-white rounded-xl shadow-inner w-full max-w-sm"><strong>${userClass}</strong> sınıfı için henüz kayıtlı ödev yok. Yukarıdaki formu kullanarak ilk kaydı oluşturun!</p></div>`;
+                resultsContainer.innerHTML = `
+                    <div class="w-full flex justify-center items-center">
+                        <div class="text-center p-8 bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-inner border border-gray-200 w-full max-w-sm">
+                            <div class="w-16 h-16 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-gray-700 mb-2"><strong>${userClass}</strong> sınıfı için henüz kayıtlı ödev yok.</p>
+                            <p class="text-gray-500 text-sm">Yukarıdaki formu kullanarak ilk kaydı oluşturun!</p>
+                        </div>
+                    </div>`;
                 return;
             }
 
@@ -676,121 +793,119 @@
                 return acc;
             }, {});
 
-            // En eski tarih solda, en yeni sağda (kaydırma için)
-            const sortedDates = Object.keys(groupedByDate).sort(); 
+            // Tarihleri bugüne yakınlıklarına göre sırala
+            const sortedDates = Object.keys(groupedByDate).sort(compareDates);
 
-            sortedDates.forEach(date => {
+            // En yakın tarih en başta (en solda) olsun
+            sortedDates.forEach((date) => {
                 const dateColumn = document.createElement('div');
-                dateColumn.className = 'w-72 flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-md p-4 space-y-3';
+                dateColumn.className = 'w-80 flex-shrink-0 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl shadow-lg p-5 space-y-4 card-hover';
                 
                 const sortedEntries = groupedByDate[date];
-                
-                // Günlük Toplam Ödev Sayısı
                 const totalDailyHomeworks = sortedEntries.length;
-
-                const dateHeader = document.createElement('h3');
-                let headerText = formatDate(date);
-                const today = new Date().toISOString().split('T')[0];
-                const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
-
-                if (date === today) {
-                    headerText = `BUGÜN (${headerText}) <span class="text-green-500 text-base">★</span>`;
-                    dateColumn.classList.add('border-indigo-500', 'border-2', 'shadow-xl');
-                } else if (date === yesterday) {
-                    headerText = `DÜN (${headerText})`;
-                }
-
-                dateHeader.className = 'text-lg font-bold text-gray-800 border-b pb-2 mb-3';
-                dateHeader.innerHTML = headerText;
-                dateColumn.appendChild(dateHeader);
+                const dateStatus = getDateStatus(date);
                 
-                // Toplam Ödev Sayısı Ekranı
-                const totalHomeworkDisplay = document.createElement('p');
-                totalHomeworkDisplay.className = 'text-sm font-semibold text-indigo-600 mb-2';
-                totalHomeworkDisplay.innerHTML = `Verilen Ödev: <span class="text-xl font-extrabold">${totalDailyHomeworks}</span>`;
-                dateColumn.appendChild(totalHomeworkDisplay);
-
-                // Gösterme mantığı aynı
-                const visibleEntries = sortedEntries.slice(0, 3);
-                const hiddenEntries = sortedEntries.slice(3);
-
-                visibleEntries.forEach(entry => {
-                    dateColumn.appendChild(createEntryCard(entry, date));
-                });
-
-                if (hiddenEntries.length > 0) {
-                    const hiddenDiv = document.createElement('div');
-                    hiddenDiv.id = `hidden-entries-${date}`;
-                    hiddenDiv.className = 'hidden space-y-3 pt-3 border-t border-gray-200';
-                    
-                    hiddenEntries.forEach(entry => {
-                        hiddenDiv.appendChild(createEntryCard(entry, date));
-                    });
-                    dateColumn.appendChild(hiddenDiv);
-
-                    const toggleButton = document.createElement('button');
-                    toggleButton.id = `toggle-button-${date}`;
-                    toggleButton.dataset.count = hiddenEntries.length;
-                    toggleButton.className = 'w-full text-center text-sm font-semibold text-indigo-500 hover:text-indigo-700 transition duration-150 pt-2';
-                    toggleButton.textContent = `... ${hiddenEntries.length} Ödev Daha Göster`;
-                    toggleButton.onclick = () => toggleDayEntries(date);
-                    dateColumn.appendChild(toggleButton);
+                // Tarih durumuna göre stil ayarla
+                if (dateStatus === 'today') {
+                    dateColumn.classList.add('today-glow', 'border-2', 'border-indigo-500');
+                } else if (dateStatus === 'tomorrow') {
+                    dateColumn.classList.add('border-2', 'border-blue-400');
+                } else if (dateStatus === 'yesterday') {
+                    dateColumn.classList.add('border-2', 'border-gray-400');
                 }
 
+                // Tarih başlığı
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'flex justify-between items-center pb-3 border-b border-gray-200';
+                
+                const dateText = document.createElement('div');
+                let displayText = formatDate(date);
+                
+                // Tarih durumuna göre başlık ekle
+                if (dateStatus === 'today') {
+                    displayText = `BUGÜN (${displayText})`;
+                    dateText.innerHTML = `<span class="text-xl font-bold text-indigo-700">${displayText}</span>`;
+                } else if (dateStatus === 'tomorrow') {
+                    displayText = `YARIN (${displayText})`;
+                    dateText.innerHTML = `<span class="text-xl font-bold text-blue-600">${displayText}</span>`;
+                } else if (dateStatus === 'yesterday') {
+                    displayText = `DÜN (${displayText})`;
+                    dateText.innerHTML = `<span class="text-xl font-bold text-gray-600">${displayText}</span>`;
+                } else if (dateStatus === 'future') {
+                    displayText = `SONRAKİ (${displayText})`;
+                    dateText.innerHTML = `<span class="text-xl font-bold text-green-600">${displayText}</span>`;
+                } else {
+                    dateText.innerHTML = `<span class="text-xl font-bold text-gray-700">${displayText}</span>`;
+                }
+                
+                const countBadge = document.createElement('div');
+                countBadge.className = 'px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 font-bold rounded-full text-sm border border-indigo-200';
+                countBadge.textContent = `${totalDailyHomeworks} ödev`;
+                
+                dateHeader.appendChild(dateText);
+                dateHeader.appendChild(countBadge);
+                dateColumn.appendChild(dateHeader);
+
+                // Ödev kartları
+                const entriesContainer = document.createElement('div');
+                entriesContainer.className = 'space-y-3';
+                
+                sortedEntries.forEach(entry => {
+                    entriesContainer.appendChild(createEntryCard(entry, date));
+                });
+                
+                dateColumn.appendChild(entriesContainer);
                 resultsContainer.appendChild(dateColumn);
             });
             
-            // En sağa (en yeni güne) kaydır
+            // En yakın tarihe (en sola) kaydır
             const dashboardContainer = document.getElementById('dashboardContainer');
             setTimeout(() => {
-                const maxScrollLeft = dashboardContainer.scrollWidth - dashboardContainer.clientWidth;
-                if (maxScrollLeft > 0) {
-                    dashboardContainer.scrollLeft = maxScrollLeft;
-                }
+                dashboardContainer.scrollLeft = 0;
             }, 50);
         }
-        
-        // Tek bir ÖDEV KARTI oluşturan fonksiyon
+
+        // Ödev kartı oluşturma - DÜZELTİLMİŞ VERSİYON
         function createEntryCard(entry, date) {
             const entryDiv = document.createElement('div');
             entryDiv.id = `entry-${entry.id}`;
-            entryDiv.className = 'p-3 rounded-lg bg-gray-50 border border-gray-100 transition duration-150 shadow-sm hover:shadow-md';
+            entryDiv.className = 'p-4 rounded-xl bg-white border border-gray-200 transition-all duration-150 shadow-sm hover:shadow-md';
             
             const sourceHtml = entry.source && entry.source.length > 0
-                ? `<p class="text-xs text-gray-500 italic mb-2 truncate" title="${entry.source}"><strong>Kaynak:</strong> ${entry.source}</p>`
+                ? `<p class="text-xs text-gray-600 mb-2 truncate" title="${entry.source}"><strong class="text-gray-700">📖 Kaynak:</strong> ${entry.source}</p>`
                 : '';
                 
             const authorHtml = entry.authorEmail
-                ? `<p class="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-200">Ekleyen: ${entry.authorEmail}</p>`
+                ? `<p class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">👤 Ekleyen: ${entry.authorEmail}</p>`
                 : '';
 
             entryDiv.innerHTML = `
-                <div class="flex justify-between items-start mb-1">
-                    <p class="text-base font-semibold text-indigo-700 leading-tight">${entry.subject}</p>
-                    <div class="flex space-x-2">
-                        <!-- Düzenle Butonu -->
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center">
+                        <span class="px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-200 mr-2">
+                            ${entry.subject}
+                        </span>
+                    </div>
+                    <div class="flex space-x-1">
                         <button onclick="openEditModal('${entry.id}')" 
-                                class="text-gray-400 hover:text-indigo-600 transition duration-150 p-1 rounded-full flex-shrink-0"
+                                class="text-gray-400 hover:text-indigo-600 transition duration-150 p-1.5 rounded-lg hover:bg-indigo-50 flex-shrink-0"
                                 title="Kaydı Düzenle">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <!-- Silme Butonu -->
                         <button onclick="confirmDelete('${entry.id}', '${entry.subject}', '${date}')" 
-                                class="text-gray-400 hover:text-red-600 transition duration-150 p-1 rounded-full flex-shrink-0"
+                                class="text-gray-400 hover:text-red-600 transition duration-150 p-1.5 rounded-lg hover:bg-red-50 flex-shrink-0"
                                 title="Kaydı Sil">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
                 ${sourceHtml}
-                <!-- Ödev Açıklaması -->
-                <p class="text-sm text-gray-800 bg-white p-2 rounded border border-gray-200 whitespace-pre-wrap">${entry.description}</p>
+                <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 whitespace-pre-wrap leading-relaxed">${entry.description}</p>
                 ${authorHtml}
             `;
             return entryDiv;
         }
         
-        // Silme Onay Modalı
         window.confirmDelete = function(id, subject, date) {
             const modal = document.getElementById('messageModal');
             const content = document.getElementById('modalContent');
@@ -816,7 +931,6 @@
             }, 10);
         }
 
-        // Silme İşlemi
         window.deleteEntry = async function(id) {
             closeModal();
             if (!db || !userClass) {
@@ -824,10 +938,7 @@
                 return;
             }
             try {
-                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 4 =====
-                // Silme işlemi de doğru alt koleksiyon yolunu (7 segment) kullanmalı
                 const collectionPath = `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`;
-                // ===== SON: YOL DÜZELTMESİ 4 =====
                 
                 await deleteDoc(doc(db, collectionPath, id));
                 showModal("Başarılı", "Ödev kaydı başarıyla silindi.");
@@ -837,7 +948,6 @@
             }
         }
         
-        // Ödev Düzenleme Modalı Açma
         window.openEditModal = function(id) {
             const entry = allEntriesMap.get(id);
             if (!entry) {
@@ -862,7 +972,6 @@
             }, 10);
         }
 
-        // Ödev Güncelleme İşlemi
         window.updateEntry = async function(e) {
             e.preventDefault();
             if (!userClass) {
@@ -882,20 +991,17 @@
             }
             
             try {
-                // ===== BAŞLANGIÇ: YOL DÜZELTMESİ 5 =====
-                // Güncelleme işlemi de doğru alt koleksiyon yolunu (7 segment) kullanmalı
                 const docRef = doc(db, `${HOMEWORK_COLLECTION_BASE}/${userClass}/entries`, id);
-                // ===== SON: YOL DÜZELTMESİ 5 =====
                 
                 const updatedData = {
                     date: date,
                     subject: subject,
                     source: source,
                     description: description,
-                    updatedAt: serverTimestamp() 
+                    updatedAt: serverTimestamp()
                 };
 
-                await setDoc(docRef, updatedData, { merge: true }); 
+                await setDoc(docRef, updatedData, { merge: true });
                 
                 closeEditModal();
                 showModal("Başarılı", `<strong>${formatDate(date)}</strong> tarihli ödev kaydı başarıyla güncellendi.`);
@@ -906,9 +1012,6 @@
             }
         }
         
-        // --- YÖNETİCİ PANELİ FONKSİYONLARI ---
-        
-        // Atamaları Yükle
         async function loadAdminAssignments() {
             const listContainer = document.getElementById('adminAssignmentList');
             const loading = document.getElementById('adminAssignmentListLoading');
@@ -916,7 +1019,6 @@
             loading.classList.remove('hidden');
 
             try {
-                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
                 const q = query(collection(db, ASSIGNMENT_COLLECTION), orderBy("userEmail"));
                 const querySnapshot = await getDocs(q);
                 
@@ -926,7 +1028,7 @@
                     querySnapshot.forEach(doc => {
                         const data = doc.data();
                         const item = document.createElement('div');
-item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
+                        item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
                         item.innerHTML = `
                             <div>
                                 <span class="font-semibold text-gray-800">${data.userEmail}</span>
@@ -948,7 +1050,6 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
             }
         }
         
-        // Atama Ekle veya Güncelle
         window.addOrUpdateAssignment = async function() {
             const email = document.getElementById('admin-email').value.trim().toLowerCase();
             const className = document.getElementById('admin-class').value.trim();
@@ -959,13 +1060,11 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
             }
             
             try {
-                // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
                 const q = query(collection(db, ASSIGNMENT_COLLECTION), where("userEmail", "==", email));
                 const querySnapshot = await getDocs(q);
                 
                 let docId = null;
                 if (!querySnapshot.empty) {
-                    // Varsa: docId'sini al
                     docId = querySnapshot.docs[0].id;
                 }
                 
@@ -975,18 +1074,16 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
                 };
                 
                 if (docId) {
-                    // Güncelle
                     const docRef = doc(db, ASSIGNMENT_COLLECTION, docId);
-                    await setDoc(docRef, data, { merge: true }); // setDoc merge ile güncelleme yapar
+                    await setDoc(docRef, data, { merge: true });
                     showModal("Başarılı", `<strong>${email}</strong> kullanıcısının sınıfı <strong>${className}</strong> olarak güncellendi.`);
                 } else {
-                    // Yoksa: Yeni Ekle
                     await addDoc(collection(db, ASSIGNMENT_COLLECTION), data);
                     showModal("Başarılı", `<strong>${email}</strong> kullanıcısı <strong>${className}</strong> sınıfına başarıyla eklendi.`);
                 }
                 
                 document.getElementById('adminForm').reset();
-                loadAdminAssignments(); // Listeyi yenile
+                loadAdminAssignments();
                 
             } catch (error) {
                 console.error("Atama kaydedilirken hata: ", error);
@@ -994,9 +1091,7 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
             }
         }
         
-        // Atama Sil
         window.deleteAssignment = async function(docId, email) {
-            // Silme onayı (showModal'ın özel versiyonu)
             const modal = document.getElementById('messageModal');
             const content = document.getElementById('modalContent');
             const modalActions = document.getElementById('modalActions');
@@ -1012,10 +1107,9 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
             document.getElementById('confirmDeleteButton').onclick = async () => {
                 closeModal();
                 try {
-                    // YOL DÜZELTMESİ: ASSIGNMENT_COLLECTION (5 segmentli) artık doğru.
                     await deleteDoc(doc(db, ASSIGNMENT_COLLECTION, docId));
                     showModal("Başarılı", `${email} kullanıcısının ataması silindi.`);
-                    loadAdminAssignments(); // Listeyi yenile
+                    loadAdminAssignments();
                 } catch (error) {
                     console.error("Atama silinirken hata: ", error);
                     showModal("Hata", "Atama silinirken bir sorun oluştu.");
@@ -1030,7 +1124,6 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
             }, 10);
         }
 
-        // Sayfa yüklendiğinde bugünün tarihini ayarla
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const year = today.getFullYear();
@@ -1043,5 +1136,3 @@ item.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg';
     </script>
 </body>
 </html>
-
-
